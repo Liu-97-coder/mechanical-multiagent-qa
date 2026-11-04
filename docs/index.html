@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机械制造多 Agent 问答系统 · 在线演示</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: #f4f1ec;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    color: #222;
+  }
+  header {
+    background: #2e7d5b;
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.14);
+  }
+  .brand { font-size: 16px; font-weight: 600; line-height: 1.35; }
+  .brand small { display: block; font-weight: 400; font-size: 11.5px; opacity: .88; margin-top: 2px; }
+  .repo {
+    margin-left: auto;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,.55);
+    border-radius: 20px;
+    padding: 4px 11px;
+    white-space: nowrap;
+  }
+  .repo:hover { background: rgba(255,255,255,.16); }
+  #chat {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 16px 18px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .row { display: flex; flex-direction: column; gap: 6px; }
+  .row.user { align-items: flex-end; }
+  .row.bot { align-items: flex-start; }
+  .bubble {
+    max-width: 84%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.65;
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .bubble.user { background: #2e7d5b; color: #fff; border-bottom-right-radius: 3px; }
+  .bubble.bot {
+    background: #fff; color: #222; border: 1px solid #e6ded2;
+    border-bottom-left-radius: 3px; box-shadow: 0 1px 2px rgba(0,0,0,.03);
+  }
+  .steps { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
+  .step {
+    font-size: 11.5px; padding: 3px 9px; border-radius: 20px;
+    background: #eef4f0; color: #2e7d5b; border: 1px solid #cfdfd5;
+    white-space: nowrap;
+  }
+  .src {
+    margin-top: 10px; font-size: 11.5px; color: #7a7f85;
+    border-top: 1px dashed #e2ddd3; padding-top: 7px;
+  }
+  .tip { align-self: center; color: #8a8f94; font-size: 12px; text-align: center; line-height: 1.6; }
+  .chips {
+    display: flex; gap: 8px; overflow-x: auto; padding: 8px 18px 0;
+    background: #f4f1ec; scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; font-size: 12px; padding: 6px 12px; border-radius: 20px;
+    border: 1px solid #d8cec0; background: #fff; color: #4a4a4a; cursor: pointer;
+    font-family: inherit; white-space: nowrap;
+  }
+  .chip:hover { border-color: #2e7d5b; color: #2e7d5b; }
+  footer {
+    padding: 10px 18px 14px; background: #f4f1ec; display: flex; gap: 10px;
+    border-top: 1px solid #e6ded2;
+  }
+  #input {
+    flex: 1; padding: 10px 14px; border: 1px solid #d5cdc0; border-radius: 10px;
+    font-size: 14px; outline: none; font-family: inherit; background: #fff;
+  }
+  #input:focus { border-color: #2e7d5b; }
+  #send {
+    padding: 10px 22px; background: #2e7d5b; color: #fff; border: none;
+    border-radius: 10px; font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  #send:hover { background: #25684c; }
+  @media (max-width: 480px) {
+    .brand small { display: none; }
+    .bubble { max-width: 90%; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">机械制造多 Agent 问答系统<small>在线演示 · 四个环节逐步展示 · 逻辑在浏览器本地运行</small></div>
+  <a class="repo" href="https://github.com/Liu-97-coder/mechanical-multiagent-qa" target="_blank" rel="noopener">源码</a>
+</header>
+
+<div id="chat">
+  <div class="tip">问一句设备相关的问题，会依次走「意图识别 → 检索 → 生成 → 质检」四步。<br>也可以直接点下面的示例。</div>
+</div>
+
+<div class="chips" id="chips"></div>
+
+<footer>
+  <input id="input" type="text" placeholder="输入你的问题，比如：主轴异响是什么原因" autocomplete="off">
+  <button id="send" type="button">发送</button>
+</footer>
+
+<script>
+/* 由 knowledge/*.md 自动生成，勿手改 */
+window.__MECH_KB__ = [
+ {
+  "source": "主轴异响.md",
+  "text": "# 主轴异响故障处理\n\n主轴出现异响，常见原因和处理步骤如下：\n\n1. 轴承磨损或润滑不良：主轴转速上升时异响加剧，多为轴承问题。\n   处理：停机检查主轴轴承，补充或更换润滑脂，磨损严重的更换轴承。\n2. 皮带松紧不当：传动皮带过松或老化会产生打滑异响。\n   处理：检查并调整皮带张紧度，老化破损的皮带直接更换。\n3. 主轴锥孔或刀柄配合不良：装刀后异响明显。\n   处理：清洁锥孔与刀柄锥面，检查拉刀机构是否正常。\n4. 主轴动平衡不良：高速时出现周期性振动和啸叫。\n   处理：重新做主轴动平衡或送厂家检测。\n\n提醒：异响问题应先断电，待主轴完全停止后再检查，避免工伤。"
+ },
+ {
+  "source": "伺服选型.md",
+  "text": "# 伺服电机选型参考\n\n伺服电机选型主要看三个参数：\n\n1. 额定扭矩：根据负载力矩计算，一般选额定扭矩为负载力矩的 1.5~2 倍。\n   举例：负载力矩 3 N·m，可选用额定扭矩 4.5~6 N·m 的伺服电机。\n2. 额定转速：转速要覆盖设备需要的最高转速，通常留有 20% 余量。\n3. 惯量匹配：负载惯量与电机惯量之比建议在 1~10 之间，匹配太差影响动态响应。\n\n配套驱动选型：\n- 驱动器额定电流应大于电机额定电流；\n- 编码器分辨率根据定位精度要求选择，一般选 17 位及以上。\n\n提醒：选型时还需考虑电机安装方式（法兰/底座）、防护等级（IP）和制动器是否需要。"
+ },
+ {
+  "source": "导轨卡滞.md",
+  "text": "# 导轨卡滞爬行处理\n\n导轨出现卡滞、爬行或移动不顺畅，常见原因和处理：\n\n1. 润滑不足：导轨缺少润滑脂/润滑油，出现粘滞爬行。\n   处理：检查导轨润滑系统是否正常供油，补充或更换润滑介质。\n2. 导轨拉伤或积屑：导轨面有划伤、毛刺或铁屑堆积，卡住滑座。\n   处理：清理导轨面铁屑和积屑，用油石修平毛刺，拉伤严重需重新刮研。\n3. 镶条或压板太紧：间隙过小，运行阻力大。\n   处理：适当调整镶条和压板松紧，保证滑动顺畅。\n4. 丝杠或进给机构异常：丝杠弯曲、轴承损坏或伺服进给憋劲。\n   处理：检查丝杠、轴承和进给传动，排除机械卡阻。\n\n提示：卡滞若强行运行会拉伤导轨，先排除卡阻原因再开机。"
+ },
+ {
+  "source": "液压压力不足.md",
+  "text": "# 液压系统压力不足\n\n液压系统压力上不去，一般按以下顺序排查：\n\n1. 液压油量不足或油液变质：油位过低会导致压力建立不起来。\n   处理：检查油位，不足则补充，油液发黑变质需整体更换。\n2. 溢流阀设定值偏低或阀芯卡滞：压力到不了设定值。\n   处理：检查溢流阀设定压力，清洗阀芯，必要时重新调定。\n3. 泵吸油不畅：进油口滤网堵塞或管路漏气，泵吸不上油。\n   处理：清洗进油滤网，检查并紧固吸油管路接头。\n4. 系统内泄漏：油缸、阀组密封件老化导致内漏。\n   处理：检查并更换密封件，必要时做保压测试判断泄漏点。\n\n安全提示：检修液压系统前必须先泄压，防止高压油喷出伤人。"
+ },
+ {
+  "source": "电机过载.md",
+  "text": "# 电机过载报警\n\n电机频繁报过载，常见原因和处理：\n\n1. 负载过大：实际加工负载超出电机额定能力。\n   处理：核对工艺参数，适当降低进给量或转速，减少单次切深。\n2. 机械卡阻：导轨、丝杠、轴承卡滞增大电机负荷。\n   处理：检查导轨润滑、丝杠是否损坏、轴承是否卡死。\n3. 电机本身问题：轴承抱死、绕组短路或绝缘下降。\n   处理：用万用表测三相电流是否平衡，绝缘电阻是否合格。\n4. 参数设置不当：热继电器或变频器过载参数设得过小。\n   处理：核对铭牌额定电流，重新整定保护参数。\n\n提示：反复过载报警应先停机找原因，不能盲目提高过载设定值，否则会烧电机。"
+ },
+ {
+  "source": "维护保养.md",
+  "text": "# 设备维护保养周期\n\n常见设备维护保养参考周期：\n\n1. 液压系统：液压油每 6 个月检查一次，变质或污染后及时更换；\n   液压油滤芯每 6 个月或 500 工作小时更换。\n2. 导轨润滑：每日开机前检查导轨润滑是否正常，润滑脂按需补充；\n   润滑系统油路每季度清洗一次。\n3. 主轴：主轴润滑脂每 500 工作小时补充，每年检查一次主轴精度。\n4. 皮带与传动件：传动皮带每季度检查张紧度，磨损严重即更换。\n5. 冷却液：切削液每周检查浓度和 PH 值，定期更换并清理水箱。\n\n说明：以上为通用参考，具体以设备说明书为准。"
+ }
+];
+
+</script>
+<script>
+/* 机械制造多 Agent 问答系统 —— 浏览器端逻辑
+ * 与 Python 版 agents.py / rag.py / webapp.py 的算法一一对应（2-gram + IDF 检索、四环节编排、质检）。
+ * 不依赖 DOM，可在 Node 里直接 require 做对照测试。
+ */
+(function (g) {
+  "use strict";
+
+  /* ---------- rag.py：字符 2-gram + IDF 检索 ---------- */
+  function bigrams(text) {
+    var chars = text.match(/[\u4e00-\u9fa5A-Za-z0-9]/g) || [];
+    var set = new Set();
+    for (var i = 0; i < chars.length - 1; i++) set.add(chars[i] + chars[i + 1]);
+    return set;
+  }
+
+  function createIndex(docs) {
+    var n = docs.length;
+    var docGrams = docs.map(function (d) { return bigrams(d.text); });
+    var df = new Map();
+    docGrams.forEach(function (grams) {
+      grams.forEach(function (gr) { df.set(gr, (df.get(gr) || 0) + 1); });
+    });
+    var idf = new Map();
+    df.forEach(function (c, gr) { if (c < n) idf.set(gr, Math.log(n / c)); });
+
+    function search(query, topK) {
+      topK = topK || 3;
+      var qGrams = bigrams(query);
+      var scored = [];
+      docs.forEach(function (d, i) {
+        var hits = [];
+        qGrams.forEach(function (gr) {
+          if (docGrams[i].has(gr) && idf.has(gr)) hits.push(gr);
+        });
+        // 至少命中 2 个独特字组才算相关，避免单字误命中
+        if (hits.length >= 2) {
+          var s = 0;
+          hits.forEach(function (gr) { s += idf.get(gr); });
+          scored.push([s, i]);
+        }
+      });
+      if (!scored.length) return [];
+      scored.sort(function (a, b) { return b[0] - a[0]; });
+      var seen = new Set(), out = [];
+      for (var k = 0; k < scored.length; k++) {
+        var d = docs[scored[k][1]];
+        if (seen.has(d.source)) continue;
+        seen.add(d.source);
+        out.push(d);
+        if (out.length >= topK) break;
+      }
+      return out;
+    }
+
+    return { docs: docs, search: search, _idf: idf };
+  }
+
+  /* ---------- agents.py：四个 Agent ---------- */
+  var TYPE_KEYWORDS = [
+    ["故障诊断", ["故障", "异响", "报警", "报错", "漏油", "不启动", "异常", "过热", "过载", "震动"]],
+    ["参数选型", ["选型", "参数", "规格", "多大", "扭矩", "功率", "转速", "型号", "匹配"]],
+    ["维护保养", ["保养", "维护", "多久换", "更换", "润滑", "加注", "检查周期", "清洁"]]
+  ];
+
+  function detectIntent(question) {
+    for (var i = 0; i < TYPE_KEYWORDS.length; i++) {
+      var kws = TYPE_KEYWORDS[i][1];
+      for (var j = 0; j < kws.length; j++) {
+        if (question.indexOf(kws[j]) !== -1) return TYPE_KEYWORDS[i][0];
+      }
+    }
+    return "其他";
+  }
+
+  function generate(question, qtype, docs) {
+    if (!docs.length) return "知识库里暂时没有找到相关的资料，请换个说法试试。";
+    var lines = docs.map(function (d, i) { return (i + 1) + ". " + d.text.trim(); });
+    var head = "根据知识库，关于「" + qtype + "」的问题，查到以下相关信息：\n";
+    var tail = "\n（以上内容来自知识库检索，若有具体设备型号请补充后再查更准。）";
+    return head + lines.join("\n") + tail;
+  }
+
+  var VAGUE_GRAMS = new Set([
+    "是什", "什么", "么原", "原因", "怎么", "么办", "如何", "为什么",
+    "问题", "处理", "检查", "一个", "这个", "那个", "需要", "是否",
+    "应该", "可能", "一般", "进行", "出现", "情况", "时候", "多少",
+    "多久", "几种", "哪些", "帮忙", "一下"
+  ]);
+
+  function verify(question, answer, qtype, hasDocs) {
+    if (!hasDocs) return answer;
+    var core = [];
+    bigrams(question).forEach(function (gr) { if (!VAGUE_GRAMS.has(gr)) core.push(gr); });
+    if (!core.length) return answer;
+    var covered = 0;
+    core.forEach(function (gr) { if (answer.indexOf(gr) !== -1) covered++; });
+    if (covered / core.length < 0.5) {
+      return answer + "\n\n[自查] 回答可能没覆盖到你问的核心内容，建议补充设备型号或更详细现象。";
+    }
+    return answer;
+  }
+
+  /* ---------- webapp.py：串起四步 ---------- */
+  function process_(question, index) {
+    var qtype = detectIntent(question);
+    var docs = index.search(question, 3);
+    var answer = generate(question, qtype, docs);
+    answer = verify(question, answer, qtype, docs.length > 0);
+    return {
+      qtype: qtype,
+      doc_count: docs.length,
+      answer: answer,
+      sources: docs.map(function (d) { return d.source; })
+    };
+  }
+
+  var api = {
+    bigrams: bigrams,
+    createIndex: createIndex,
+    detectIntent: detectIntent,
+    generate: generate,
+    verify: verify,
+    process: process_
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  g.MechCore = api;
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+/* 机械制造多 Agent 问答系统 —— 页面交互 */
+(function () {
+  "use strict";
+
+  var chat = document.getElementById("chat");
+  var input = document.getElementById("input");
+  var sendBtn = document.getElementById("send");
+  var chips = document.getElementById("chips");
+  var index = MechCore.createIndex(window.__MECH_KB__);
+
+  var SAMPLES = [
+    "主轴异响是什么原因",
+    "伺服电机选型要多大扭矩",
+    "液压油多久换一次",
+    "导轨卡滞怎么办",
+    "今天天气怎么样"
+  ];
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  function scroll() { chat.scrollTop = chat.scrollHeight; }
+
+  function addUser(text) {
+    var row = el("div", "row user");
+    row.appendChild(el("div", "bubble user", text));
+    chat.appendChild(row);
+    scroll();
+  }
+
+  function addBot(r) {
+    var row = el("div", "row bot");
+    var bubble = el("div", "bubble bot");
+
+    var steps = el("div", "steps");
+    steps.appendChild(el("span", "step", "① 意图识别：" + r.qtype));
+    steps.appendChild(el("span", "step", "② 检索：" + r.doc_count + " 条"));
+    steps.appendChild(el("span", "step", "③ 生成回答"));
+    steps.appendChild(el("span", "step", "④ 质检"));
+    bubble.appendChild(steps);
+
+    bubble.appendChild(el("div", "ans", r.answer));
+
+    if (r.sources && r.sources.length) {
+      bubble.appendChild(el("div", "src", "资料来源：" + r.sources.join("、")));
+    }
+
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    scroll();
+  }
+
+  function ask(text) {
+    var q = (text !== undefined ? text : input.value).trim();
+    if (!q) return;
+    addUser(q);
+    input.value = "";
+    var r = MechCore.process(q, index);
+    addBot(r);
+    input.focus();
+  }
+
+  SAMPLES.forEach(function (s) {
+    var b = el("button", "chip", s);
+    b.type = "button";
+    b.addEventListener("click", function () { ask(s); });
+    chips.appendChild(b);
+  });
+
+  sendBtn.addEventListener("click", function () { ask(); });
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter") ask(); });
+
+  // 截图/演示用：地址带 #demo 时自动问第一个示例
+  if (location.hash === "#demo") ask(SAMPLES[0]);
+})();
+
+</script>
+</body>
+</html>
